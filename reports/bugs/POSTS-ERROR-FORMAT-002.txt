@@ -1,0 +1,44 @@
+========================================
+BUG-ID: POSTS-ERROR-FORMAT-002
+SUMMARY:
+При вызове GET /api/v1/posts/{postId} с пустым postId API возвращает ответ в нестандартном формате с полями timestamp, status, error и path вместо ожидаемого унифицированного формата с полями status и error. Это нарушает единообразие формата ответов об ошибках и ломает валидацию в автотестах
+
+ENVIRONMENT:
+Local Docker nanoreddit
+Endpoint: /api/v1/posts/{postId}
+
+PRECONDITIONS:
+Создан пользователь с валидным токеном
+
+STEPS TO REPRODUCE:
+1. Создать пользователя и получить токен
+2. Выполнить GET /api/v1/posts/ (с пустым postId, что приводит к URL, заканчивающемуся на слэш) с заголовком Authorization: Bearer {token} и параметрами:
+   - page=0
+   - size=20
+   - sort=createdAt,asc
+3. Проверить формат ответа API
+
+EXPECTED RESULT:
+- API должен возвращать ошибку в унифицированном формате с полями "status" и "error"
+- Формат ответа должен быть единообразным, как и в других случаях использования posts endpoints: {"status":"error","error":"an error occurred"}
+
+ACTUAL RESULT:
+API возвращает ответ в нестандартном формате с дополнительными полями:
+{
+  "timestamp": "2025-11-29T05:48:19.520+00:00",
+  "status": 404,
+  "error": "Not Found",
+  "path": "/api/v1/posts/"
+}
+Вместо ожидаемого формата: {"status":"error","error":"an error occurred"}
+Формат ответа отличается от ожидаемого, что ломает валидацию в автотестах, настроенную на унифицированный формат
+
+SEVERITY:
+Minor
+
+PRIORITY:
+P2
+
+NOTES:
+Необходимо унифицировать формат ответов об ошибках для endpoint GET /api/v1/posts/{postId}. При вызове с пустым postId API должен возвращать ошибку в том же формате, что и другие ошибки валидации: {"status":"error","error":"an error occurred"} или аналогичный унифицированный формат. Это обеспечит единообразие API и корректную работу автотестов. Проблема аналогична POSTS-ERROR-FORMAT-001 и ADMIN-ERROR-FORMAT-001
+========================================

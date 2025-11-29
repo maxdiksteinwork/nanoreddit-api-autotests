@@ -1,0 +1,44 @@
+========================================
+BUG-ID: AUTH-VALIDATION-001
+SUMMARY:
+Регистрация принимает пароль без спецсимволов, но логин — отвергает такой пароль. Несовпадение правил валидации.
+
+ENVIRONMENT:
+- Local Docker nanoreddit
+- Endpoint: /api/v1/auth/register, /api/v1/auth/login
+
+PRECONDITIONS:
+Нет
+
+STEPS TO REPRODUCE:
+1. Выполнить POST /api/v1/auth/register с телом:
+{
+  "email": "password_bug@test.com",
+  "username": "password_bug",
+  "password": "Abc12345",
+  "passwordConfirmation": "Abc12345"
+}
+2. Убедиться, что регистрация успешна.
+3. Выполнить POST /api/v1/auth/login с тем же email и паролем:
+{
+  "email": "password_bug@test.com",
+  "password": "Abc12345"
+}
+
+EXPECTED RESULT:
+- Правила валидации register и login должны совпадать.
+- Пароль, который успешно прошёл регистрацию, должен приниматься логином.
+
+ACTUAL RESULT:
+Endpoint /auth/login возвращает ошибку:
+"Password must contain at least one digit, one lowercase letter, one uppercase letter, one special character and no whitespace"
+
+SEVERITY:
+Critical
+
+PRIORITY:
+P1
+
+NOTES:
+При регистрации спецсимволы (из списка @#$%^&+=) не требуются. При логине — требуются.  
+========================================

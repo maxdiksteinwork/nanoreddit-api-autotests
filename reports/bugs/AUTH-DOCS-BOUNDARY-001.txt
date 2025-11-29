@@ -1,0 +1,47 @@
+========================================
+BUG-ID: AUTH-DOCS-BOUNDARY-001
+SUMMARY:
+Фактические максимальные ограничения на длину email, username и password не совпадают с указанными в документации /api/v1/auth/register.
+
+ENVIRONMENT:
+- Local Docker nanoreddit
+- Endpoint: /api/v1/auth/register
+
+PRECONDITIONS:
+Нет
+
+STEPS TO REPRODUCE:
+1. Открыть документацию Swagger для /api/v1/auth/register
+2. Посмотреть указанные граничные значения для полей:
+   - email ≥ 1
+   - username ≥ 1
+   - password [8, 2147483647]
+   - passwordConfirmation [8, 2147483647]
+3. Сравнить с фактически рабочими значениями, которые сервер принимает:
+   - email: local part 64, domain before dot 63, domain after dot 63 (192 символа)
+   - username: 255 символов
+   - password: 72 символа
+
+EXPECTED RESULT:
+Документация должна содержать корректные граничные значения для email, username и password, соответствующие фактической серверной валидации.
+
+ACTUAL RESULT:
+Документация указывает гораздо более широкие диапазоны, чем реально поддерживает сервер:
+- email ≥ 1
+- username ≥ 1
+- password [8, 2147483647]
+- passwordConfirmation [8, 2147483647]
+Фактические максимумы:
+- email: 192 символа
+- username: 255 символов
+- password: 72 символа
+
+SEVERITY:
+Minor
+
+PRIORITY:
+P3
+
+NOTES:
+Фактические технические ограничения должны быть отражены в документации, чтобы не вводить в заблуждение разработчиков и тестировщиков.
+========================================

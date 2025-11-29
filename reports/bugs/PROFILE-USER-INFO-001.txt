@@ -1,0 +1,49 @@
+========================================
+BUG-ID: PROFILE-USER-INFO-001
+SUMMARY:
+Метод получения профиля пользователя по токену возвращает email в поле username вместо реального username пользователя. При запросе собственного профиля поле username должно содержать значение username из базы данных, а не email
+
+ENVIRONMENT:
+Local Docker nanoreddit
+Endpoint: /api/v1/profile/info
+
+PRECONDITIONS:
+В системе существует пользователь с известными username и email
+Имеется валидный токен пользователя для авторизации
+
+STEPS TO REPRODUCE:
+1. Создать тестового пользователя с известными username и email
+2. Выполнить авторизацию и получить токен пользователя
+3. Выполнить POST /api/v1/profile/info с заголовком Authorization: Bearer {user_token}
+4. Проверить ответ API и сравнить поле username с данными в базе данных
+
+EXPECTED RESULT:
+API возвращает корректные данные пользователя:
+- Поле "username" содержит значение username из базы данных
+- Поле "email" содержит значение email из базы данных
+- Значения в полях "username" и "email" различаются
+
+ACTUAL RESULT:
+API возвращает email в поле username:
+{
+  "status": "ok",
+  "responseData": {
+    "id": 4784,
+    "email": "user_email@example.com",
+    "username": "user_email@example.com",  // ОШИБКА: продублирован email вместо username
+    "bannedUntil": null,
+    "authorities": ["ROLE_USER"]
+  }
+}
+В поле "username" возвращается значение email пользователя вместо реального username из базы данных
+Поля username и email содержат одинаковое значение (email), что является ошибкой
+
+SEVERITY:
+Major
+
+PRIORITY:
+P1
+
+NOTES:
+Это баг в логике маппинга данных, аналогичный багам ADMIN-USER-PROFILE-001 и ADMIN-USER-PROFILE-002. Вероятно, в коде происходит неправильное присвоение значения полю username (используется email вместо username из базы данных). Необходимо исправить маппинг данных, чтобы поле username содержало реальное значение username из базы данных, а не email
+========================================

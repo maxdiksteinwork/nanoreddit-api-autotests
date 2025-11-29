@@ -1,0 +1,48 @@
+========================================
+BUG-ID: ADMIN-USER-PROFILE-002
+SUMMARY:
+Метод получения профиля пользователя администратором по email возвращает email в поле username вместо реального username пользователя. При запросе профиля пользователя по email поле username должно содержать значение username из базы данных, а не email
+
+ENVIRONMENT:
+Local Docker nanoreddit
+Endpoint: /api/v1/admin/user/{email}
+
+PRECONDITIONS:
+В системе существует пользователь с известным email
+У пользователя заданы уникальные значения username и email в базе данных
+Имеется валидный admin токен для авторизации
+
+STEPS TO REPRODUCE:
+1. Создать тестового пользователя с известными username и email
+2. Выполнить GET запрос к /api/v1/admin/user/{email} с заголовком Authorization: Bearer {admin_token}
+3. Проверить ответ API и сравнить поле username с данными в базе данных
+
+EXPECTED RESULT:
+API возвращает корректные данные пользователя:
+- Поле "username" содержит значение username из базы данных
+- Поле "email" содержит значение email из базы данных
+- Значения в полях "username" и "email" различаются
+
+ACTUAL RESULT:
+API возвращает email в поле username:
+{
+  "status": "ok",
+  "responseData": {
+    "id": 4767,
+    "email": "user_email@example.com",
+    "username": "user_email@example.com",  // ОШИБКА: продублирован email вместо username
+    "bannedUntil": null,
+    "authorities": ["ROLE_USER"]
+  }
+}
+В поле "username" возвращается значение email пользователя вместо реального username из базы данных
+
+SEVERITY:
+Major
+
+PRIORITY:
+P1
+
+NOTES:
+Это баг в логике маппинга данных, аналогичный багу ADMIN-USER-PROFILE-001 (для метода получения по ID). Вероятно, в коде происходит неправильное присвоение значения полю username (используется email вместо username из базы данных). Необходимо исправить маппинг данных, чтобы поле username содержало реальное значение username из базы данных, а не email. Проблема затрагивает оба метода получения профиля пользователя (по ID и по email)
+========================================

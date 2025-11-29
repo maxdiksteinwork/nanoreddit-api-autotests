@@ -1,0 +1,53 @@
+####################################
+# Python cache / compiled files
+####################################
+__pycache__/
+*.py[cod]
+*$py.class
+
+####################################
+# Virtual environments
+####################################
+venv/
+.venv/
+env/
+env*/
+.env/
+
+####################################
+# IDE / Editor settings
+####################################
+.idea/
+.vscode/
+*.iml
+
+####################################
+# Testing / tooling caches
+####################################
+.pytest_cache/
+.mypy_cache/
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+.cache/
+
+####################################
+# Allure reports and test artifacts
+####################################
+allure-results/
+allure-report/
+reports/allure-results/
+
+####################################
+# Logs
+####################################
+*.log
+
+####################################
+# OS-specific junk
+####################################
+.DS_Store
+Thumbs.db
+
+

@@ -1,0 +1,71 @@
+========================================
+BUG-ID: COMMENTS-DOCS-FORMAT-001
+SUMMARY:
+Несоответствие документации и реального формата ответа для endpoint POST /api/v1/comments/{parentCommentId}/reply. В документации указаны дополнительные поля message и error, которых нет в реальном ответе API
+
+ENVIRONMENT:
+Local Docker nanoreddit
+Endpoint: /api/v1/comments/{parentCommentId}/reply
+
+PRECONDITIONS:
+Имеется валидный токен пользователя для авторизации
+Существует комментарий с валидным parentCommentId
+
+STEPS TO REPRODUCE:
+1. Выполнить авторизацию и получить токен пользователя
+2. Создать пост и добавить к нему комментарий, получить parentCommentId
+3. Выполнить POST /api/v1/comments/{parentCommentId}/reply с заголовком Authorization: Bearer {token} и телом:
+{
+  "text": "Comment text"
+}
+4. Проверить формат ответа API и сравнить с документацией
+
+EXPECTED RESULT:
+- Формат ответа API должен соответствовать документации
+- Документация должна точно описывать структуру реального ответа
+
+ACTUAL RESULT:
+Документация указывает следующий формат ответа:
+{
+  "status": "ok",
+  "responseData": {
+    "id": "8c7b0a15-b435-425f-99b8-22293fc0fecf",
+    "text": "Comment text",
+    "author": "username@example.com",
+    "createdAt": "2025-05-18T10:13:15.772571Z",
+    "replies": []
+  },
+  "message": "string",
+  "error": {
+    "id": "8c7b0a15-b435-425f-99b8-22293fc0fecf",
+    "text": "Comment text",
+    "author": "username@example.com",
+    "createdAt": "2025-05-18T10:13:15.772571Z",
+    "replies": []
+  }
+}
+
+Реальный ответ API:
+{
+  "status": "ok",
+  "responseData": {
+    "id": "fc6bc009-94db-45a9-a293-539bd60bfac0",
+    "text": "Only happen fine already.",
+    "author": "vmartinez@example.org",
+    "createdAt": "2025-11-29T07:01:34.352852987Z",
+    "replies": []
+  }
+}
+
+В реальном ответе отсутствуют поля message и error, указанные в документации
+Поле error в документации содержит те же данные что и responseData, что является ошибкой в документации
+
+SEVERITY:
+Minor
+
+PRIORITY:
+P3
+
+NOTES:
+Необходимо обновить документацию, удалив несуществующие поля message и error из формата успешного ответа. Документация должна точно отражать реальную структуру ответа API, содержащую только поля status и responseData. Несоответствие документации может привести к путанице при разработке клиентских приложений
+========================================

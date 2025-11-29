@@ -1,0 +1,45 @@
+========================================
+BUG-ID: ADMIN-ERROR-FORMAT-001
+SUMMARY:
+При доступе к admin endpoints с токеном обычного пользователя (не админа) API возвращает ответ в нестандартном формате с полями timestamp, status, error и path вместо ожидаемого унифицированного формата с полями status и error. Это нарушает единообразие формата ответов об ошибках и ломает валидацию в автотестах
+
+ENVIRONMENT:
+Local Docker nanoreddit
+Endpoints: /api/v1/admin/user/{id}, /api/v1/admin/user/{email}, /api/v1/admin/management/ban/byEmail/{email}, /api/v1/admin/management/unban/byEmail/{email}
+
+PRECONDITIONS:
+Создан обычный пользователь (не админ) с валидным токеном
+
+STEPS TO REPRODUCE:
+1. Создать обычного пользователя и получить токен
+2. Выполнить POST /api/v1/admin/user/abc с заголовком Authorization: Bearer {user_token}
+3. Выполнить GET /api/v1/admin/user/{email} с заголовком Authorization: Bearer {user_token}
+4. Выполнить POST /api/v1/admin/management/ban/byEmail/{email} с заголовком Authorization: Bearer {user_token}
+5. Выполнить POST /api/v1/admin/management/unban/byEmail/taylormarquez@example.net с заголовком Authorization: Bearer {user_token}
+6. Проверить формат ответа API
+
+EXPECTED RESULT:
+- API должен возвращать ошибку в унифицированном формате с полями "status" и "error"
+- Формат ответа должен быть единообразным, как и в других случаях использования admin endpoints: {"status":"error","error":"an error occurred"}
+
+ACTUAL RESULT:
+API возвращает ответ в нестандартном формате с дополнительными полями:
+{
+  "timestamp": "2025-11-12T16:18:30.376+00:00",
+  "status": 403,
+  "error": "Forbidden",
+  "path": "/api/v1/admin/management/unban/byEmail/taylormarquez@example.net"
+}
+Вместо ожидаемого формата: {"status":"error","error":"an error occurred"}
+Проблема наблюдается для всех 4 admin endpoints при использовании токена обычного пользователя
+Формат ответа отличается от ожидаемого, что ломает валидацию в автотестах, настроенную на унифицированный формат
+
+SEVERITY:
+Minor
+
+PRIORITY:
+P2
+
+NOTES:
+Необходимо унифицировать формат ответов об ошибках для всех admin endpoints. При доступе с токеном обычного пользователя (не админа) API должен возвращать ошибку в том же формате, что и другие ошибки валидации: {"status":"error","error":"an error occurred"} или аналогичный унифицированный формат. Это обеспечит единообразие API и корректную работу автотестов
+========================================

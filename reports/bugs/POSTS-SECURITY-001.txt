@@ -1,0 +1,54 @@
+========================================
+BUG-ID: POSTS-SECURITY-001
+SUMMARY:
+API принимает XSS-пейлоады в поле content при публикации поста, создавая посты с потенциально опасными данными. XSS-пейлоады не отклоняются валидацией и успешно сохраняются в базе данных
+
+ENVIRONMENT:
+Local Docker nanoreddit
+Endpoint: /api/v1/posts/publish
+
+PRECONDITIONS:
+Имеется валидный токен пользователя для авторизации
+
+STEPS TO REPRODUCE:
+1. Выполнить авторизацию и получить токен пользователя
+2. Выполнить POST /api/v1/posts/publish с телом, содержащим XSS-пейлоад в content:
+{
+  "title": "xss test",
+  "content": "<script>alert(1)</script>"
+}
+3. Выполнить POST /api/v1/posts/publish с другим XSS-пейлоадом:
+{
+  "title": "xss test",
+  "content": "<img src=x onerror=alert(2)>"
+}
+4. Выполнить POST /api/v1/posts/publish с третьим XSS-пейлоадом:
+{
+  "title": "xss test",
+  "content": "<svg><script>alert(3)</script></svg>"
+}
+5. Проверить базу данных на наличие созданных постов с XSS-пейлоадами в content
+
+EXPECTED RESULT:
+- XSS-пейлоады должны отклоняться валидацией
+- API должен возвращать ошибку "access denied" или "validation error" при попытке использовать XSS-пейлоады в content
+- Посты с XSS-пейлоадами в content не должны создаваться в базе данных
+
+ACTUAL RESULT:
+API успешно создает посты с XSS-пейлоадами в content:
+<script>alert(1)</script>
+<img src=x onerror=alert(2)>
+<svg><script>alert(3)</script></svg>
+API возвращает статус "ok" вместо ожидаемой ошибки
+Посты реально создаются в базе данных с опасными данными в поле content
+При отображении content поста в веб-интерфейсе без санитизации это может привести к выполнению JavaScript-кода и XSS-атакам
+
+SEVERITY:
+Critical
+
+PRIORITY:
+P1
+
+NOTES:
+Это критическая уязвимость безопасности. XSS-пейлоады в content могут быть выполнены при отображении постов в веб-интерфейсе, что приводит к XSS-атакам. Необходимо добавить валидацию и санитизацию для поля content, запрещающую HTML/JavaScript-теги
+========================================

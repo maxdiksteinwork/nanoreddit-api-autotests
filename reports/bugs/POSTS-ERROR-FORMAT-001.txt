@@ -1,0 +1,44 @@
+========================================
+BUG-ID: POSTS-ERROR-FORMAT-001
+SUMMARY:
+При вызове POST /api/v1/posts/{postId}/addComment с пустым postId API возвращает ответ в нестандартном формате с полями timestamp, status, error и path вместо ожидаемого унифицированного формата с полями status и error. Это нарушает единообразие формата ответов об ошибках и ломает валидацию в автотестах
+
+ENVIRONMENT:
+Local Docker nanoreddit
+Endpoint: /api/v1/posts/{postId}/addComment
+
+PRECONDITIONS:
+Создан пользователь с валидным токеном
+
+STEPS TO REPRODUCE:
+1. Создать пользователя и получить токен
+2. Выполнить POST /api/v1/posts//addComment (с пустым postId, что приводит к двойному слэшу в URL) с заголовком Authorization: Bearer {token} и телом:
+{
+  "text": "Follow article write also."
+}
+3. Проверить формат ответа API
+
+EXPECTED RESULT:
+- API должен возвращать ошибку в унифицированном формате с полями "status" и "error"
+- Формат ответа должен быть единообразным, как и в других случаях использования posts endpoints: {"status":"error","error":"an error occurred"}
+
+ACTUAL RESULT:
+API возвращает ответ в нестандартном формате с дополнительными полями:
+{
+  "timestamp": "2025-11-28T17:53:00.909+00:00",
+  "status": 400,
+  "error": "Bad Request",
+  "path": "/api/v1/posts//addComment"
+}
+Вместо ожидаемого формата: {"status":"error","error":"an error occurred"}
+Формат ответа отличается от ожидаемого, что ломает валидацию в автотестах, настроенную на унифицированный формат
+
+SEVERITY:
+Minor
+
+PRIORITY:
+P2
+
+NOTES:
+Необходимо унифицировать формат ответов об ошибках для endpoint POST /api/v1/posts/{postId}/addComment. При вызове с пустым postId API должен возвращать ошибку в том же формате, что и другие ошибки валидации: {"status":"error","error":"an error occurred"} или аналогичный унифицированный формат. Это обеспечит единообразие API и корректную работу автотестов. Проблема аналогична ADMIN-ERROR-FORMAT-001, но возникает в контроллере posts при обработке некорректных параметров пути
+========================================

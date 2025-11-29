@@ -1,0 +1,81 @@
+========================================
+BUG-ID: AUTH-VALIDATION-002
+SUMMARY:
+При регистрации с превышением максимальных значений полей (email, username, password) API возвращает неинформативные сообщения об ошибках без указания допустимых границ.
+
+ENVIRONMENT:
+- Local Docker nanoreddit
+- Endpoint: /api/v1/auth/register
+
+PRECONDITIONS:
+Нет
+
+STEPS TO REPRODUCE:
+1. Выполнить POST /api/v1/auth/register с телом, где локальная часть email превышает 64 символа:
+{
+  "email": "<65 символов>@<63 символа>.<63 символа>",
+  "username": "<255 символов>",
+  "password": "<72 символа>",
+  "passwordConfirmation": "<72 символа>"
+}
+2. Выполнить POST /api/v1/auth/register с телом, где доменная часть email до точки превышает 63 символа:
+{
+  "email": "<64 символа>@<64 символа>.<63 символа>",
+  "username": "<255 символов>",
+  "password": "<72 символа>",
+  "passwordConfirmation": "<72 символа>"
+}
+3. Выполнить POST /api/v1/auth/register с телом, где доменная часть email после точки превышает 63 символа:
+{
+  "email": "<64 символа>@<63 символа>.<64 символа>",
+  "username": "<255 символов>",
+  "password": "<72 символа>",
+  "passwordConfirmation": "<72 символа>"
+}
+4. Выполнить POST /api/v1/auth/register с телом, где username превышает 255 символов:
+{
+  "email": "<64 символа>@<63 символа>.<63 символа>",
+  "username": "<256 символов>",
+  "password": "<72 символа>",
+  "passwordConfirmation": "<72 символа>"
+}
+5. Выполнить POST /api/v1/auth/register с телом, где password превышает 72 символа:
+{
+  "email": "<64 символа>@<63 символа>.<63 символа>",
+  "username": "<255 символов>",
+  "password": "<73 символа>",
+  "passwordConfirmation": "<73 символа>"
+}
+
+EXPECTED RESULT:
+- Сообщения об ошибках должны явно указывать допустимые границы для каждого поля:
+  Для email: указание максимальной длины локальной части (64 символа), домена до точки (63 символа), домена после точки (63 символа).
+  Для username: указание максимальной длины (255 символов).
+  Для password: указание максимальной длины (72 символа).
+- Сообщения должны быть информативными и понятными для пользователя.
+
+ACTUAL RESULT:
+Для превышения длины email (локальная часть, домен до/после точки):
+Возвращается: {"status": "error", "error": "Validation error: email: Email is not valid"}
+Проблема: отсутствует указание на конкретную границу (например, "Email local part must not exceed 64 characters").
+Для превышения длины username:
+Возвращается: {"status": "error", "error": "an error occurred"}
+Проблема: сообщение неинформативное, не указывает на проблему с длиной username.
+Для превышения длины password:
+Возвращается: {"status": "error", "error": "an error occurred"}
+Проблема: сообщение неинформативное, не указывает на проблему с длиной password.
+
+SEVERITY:
+Minor
+
+PRIORITY:
+P3
+
+NOTES:
+- Для email ошибка корректно указывает на проблему валидации, но не содержит информации о допустимых границах.
+- Для username и password ошибка "an error occurred" не позволяет пользователю понять причину отклонения запроса.
+- Рекомендуется добавить в сообщения об ошибках явное указание максимальных значений:
+Email: "Email local part must not exceed 64 characters" / "Email domain part must not exceed 63 characters"
+Username: "Username must not exceed 255 characters"
+Password: "Password must not exceed 72 characters"
+========================================

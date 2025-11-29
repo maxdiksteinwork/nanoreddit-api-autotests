@@ -1,0 +1,47 @@
+========================================
+BUG-ID: ADMIN-USER-PROFILE-001
+SUMMARY:
+Метод получения профиля пользователя администратором возвращает email в поле username вместо реального username пользователя. При запросе профиля пользователя по ID поле username должно содержать значение username из базы данных, а не email
+
+ENVIRONMENT:
+Local Docker nanoreddit
+Endpoint: /api/v1/admin/user/{id}
+
+PRECONDITIONS:
+В базе данных существует пользователь с известным ID, у которого заданы уникальные username и email (например, username="testuser", email="test@example.com")
+Имеется валидный admin токен для авторизации
+
+STEPS TO REPRODUCE:
+1. Создать пользователя с известными username и email (например, username="testuser", email="test@example.com") и запомнить его ID
+2. Выполнить POST /api/v1/admin/user/{id} с заголовком Authorization: Bearer {admin_token}, где {id} - ID созданного пользователя
+3. Проверить ответ API и сравнить поле username с данными в базе данных.
+
+EXPECTED RESULT:
+- API должен возвращать реальный username пользователя из базы данных в поле "username"
+- Поле "username" должно содержать значение, соответствующее username в БД (например, "testuser")
+- Поле "email" должно содержать email пользователя (например, "test@example.com")
+
+ACTUAL RESULT:
+API возвращает email в поле username:
+{
+  "status": "ok",
+  "responseData": {
+    "id": {id},
+    "email": "test@example.com",
+    "username": "test@example.com",  // ОШИБКА: здесь должен быть реальный username
+    "bannedUntil": null,
+    "authorities": ["ROLE_USER"]
+  }
+}
+В базе данных username пользователя = "testuser", но API возвращает email "test@example.com" в поле username
+Поля username и email содержат одинаковое значение (email), что является ошибкой
+
+SEVERITY:
+Major
+
+PRIORITY:
+P1
+
+NOTES:
+Это баг в логике маппинга данных. Вероятно, в коде происходит неправильное присвоение значения полю username (используется email вместо username из базы данных). Необходимо исправить маппинг данных, чтобы поле username содержало реальное значение username из базы данных, а не email
+========================================
