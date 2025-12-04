@@ -472,7 +472,7 @@ def test_register_sql_injection(session_auth_api, sql_injection_payload, field, 
 @allure.feature("Auth")
 @allure.story("Login | authentication errors")
 @allure.severity(allure.severity_level.CRITICAL)
-def test_login_with_wrong_password(session_auth_api, create_user, session_valid_password, session_sql_client):
+def test_login_with_wrong_password(session_auth_api, create_user):
     with prepare_step():
         user, _ = create_user()
         user_with_wrong_password = LoginUser(email=user.email, password=fake_password())
@@ -487,7 +487,7 @@ def test_login_with_wrong_password(session_auth_api, create_user, session_valid_
 @allure.feature("Auth")
 @allure.story("Login | authentication errors")
 @allure.severity(allure.severity_level.NORMAL)
-def test_login_with_nonexistent_email(session_auth_api, session_valid_password, session_sql_client):
+def test_login_with_nonexistent_email(session_auth_api, session_valid_password):
     with prepare_step():
         non_existent_user = LoginUser(email=fake_email(), password=session_valid_password)
 
@@ -501,7 +501,7 @@ def test_login_with_nonexistent_email(session_auth_api, session_valid_password, 
 @allure.feature("Auth")
 @allure.story("Login | validation errors")
 @allure.severity(allure.severity_level.NORMAL)
-def test_login_missing_required_fields(session_auth_api, login_missing_field_payload, session_sql_client):
+def test_login_missing_required_fields(session_auth_api, login_missing_field_payload):
     with prepare_step():
         payload = login_missing_field_payload
 
@@ -515,7 +515,7 @@ def test_login_missing_required_fields(session_auth_api, login_missing_field_pay
 @allure.feature("Auth")
 @allure.story("Login | validation errors")
 @allure.severity(allure.severity_level.NORMAL)
-def test_login_with_empty_fields(session_auth_api, login_empty_field_payload, session_sql_client):
+def test_login_with_empty_fields(session_auth_api, login_empty_field_payload):
     with prepare_step():
         payload = login_empty_field_payload
 

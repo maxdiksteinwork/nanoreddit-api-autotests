@@ -440,7 +440,7 @@ def test_reply_comment_sql_injection(session_comments_api, create_comment_with_c
 @allure.feature("Comments")
 @allure.story("Reply comment | validation")
 @allure.severity(allure.severity_level.MINOR)
-def test_reply_comment_with_unexpected_fields(session_comments_api, session_posts_api, create_comment_with_comment_id,
+def test_reply_comment_with_unexpected_fields(session_comments_api, create_comment_with_comment_id,
                                               session_sql_client):
     with prepare_step():
         _, token, parent_comment_id = create_comment_with_comment_id
