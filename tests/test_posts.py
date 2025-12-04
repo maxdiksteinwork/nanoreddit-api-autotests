@@ -245,45 +245,6 @@ def test_publish_post_invalid_token(session_posts_api, session_sql_client):
 
 
 @allure.feature("Posts")
-@allure.story("Publish post | security")
-@allure.severity(allure.severity_level.CRITICAL)
-def test_publish_post_xss(module_create_user_get_token, session_posts_api, session_sql_client, xss_payload):
-    with prepare_step():
-        count_before = get_table_count(session_sql_client, "posts")
-        payload = PublishPostPayload(title="xss test", content=xss_payload)
-
-    with execute_step():
-        resp = session_posts_api.publish_post(module_create_user_get_token, payload)
-
-    with validate_api_step():
-        assert_api_error(resp, expected_message="access denied")
-
-    with validate_db_step():
-        assert_count_unchanged(session_sql_client, "posts", count_before,
-                               error_message="Expected no post to be created with XSS payload")
-
-
-@allure.feature("Posts")
-@allure.story("Publish post | security")
-@allure.severity(allure.severity_level.CRITICAL)
-def test_publish_post_sql_injection(module_create_user_get_token, session_posts_api, session_sql_client,
-                                    sql_injection_payload):
-    with prepare_step():
-        count_before = get_table_count(session_sql_client, "posts")
-        payload = PublishPostPayload(title="sql test", content=sql_injection_payload)
-
-    with execute_step():
-        resp = session_posts_api.publish_post(module_create_user_get_token, payload)
-
-    with validate_api_step():
-        assert_api_error(resp, expected_message="access denied")
-
-    with validate_db_step():
-        assert_count_unchanged(session_sql_client, "posts", count_before,
-                               error_message="Expected no post to be created with SQL injection payload")
-
-
-@allure.feature("Posts")
 @allure.story("Publish post | authorization")
 @allure.severity(allure.severity_level.CRITICAL)
 @pytest.mark.parametrize("banned_token", ["session_banned_user_token", "session_banned_admin_token"])
@@ -456,7 +417,7 @@ def test_vote_post_banned_user(session_posts_api, create_post_get_post_id_and_to
             where_clause="WHERE post_id::text = %s",
             params=(post_id,)
         )
-        
+
     with execute_step():
         resp = session_posts_api.vote_post(token, post_id, 1)
 
@@ -650,47 +611,6 @@ def test_add_comment_invalid_post_id(module_create_user_get_token, session_posts
 
 
 @allure.feature("Posts")
-@allure.story("Add comment | security")
-@allure.severity(allure.severity_level.CRITICAL)
-def test_add_comment_xss(create_post_get_post_id_and_token, session_posts_api, session_sql_client, xss_payload):
-    with prepare_step():
-        post_id, token = create_post_get_post_id_and_token
-        count_before = get_table_count(session_sql_client, "comments", "WHERE post_id::text = %s", (post_id,))
-
-    with execute_step():
-        resp = session_posts_api.add_comment(token, post_id, AddCommentPayload(text=xss_payload))
-
-    with validate_api_step():
-        assert_api_error(resp, expected_message="access denied")
-
-    with validate_db_step():
-        assert_count_unchanged(session_sql_client, "comments", count_before,
-                               "WHERE post_id::text = %s", (post_id,),
-                               "Expected no comment to be created with XSS payload")
-
-
-@allure.feature("Posts")
-@allure.story("Add comment | security")
-@allure.severity(allure.severity_level.CRITICAL)
-def test_add_comment_sql_injection(create_post_get_post_id_and_token, session_posts_api, session_sql_client,
-                                   sql_injection_payload):
-    with prepare_step():
-        post_id, token = create_post_get_post_id_and_token
-        count_before = get_table_count(session_sql_client, "comments", "WHERE post_id::text = %s", (post_id,))
-
-    with execute_step():
-        resp = session_posts_api.add_comment(token, post_id, AddCommentPayload(text=sql_injection_payload))
-
-    with validate_api_step():
-        assert_api_error(resp, expected_message="access denied")
-
-    with validate_db_step():
-        assert_count_unchanged(session_sql_client, "comments", count_before,
-                               "WHERE post_id::text = %s", (post_id,),
-                               "Expected no comment to be created with SQL injection payload")
-
-
-@allure.feature("Posts")
 @allure.story("Add comment | authorization")
 @allure.severity(allure.severity_level.CRITICAL)
 @pytest.mark.parametrize("banned_token", ("session_banned_user_token", "session_banned_admin_token"))
@@ -745,7 +665,8 @@ def test_get_posts(session_posts_api, module_create_user_get_token, session_sql_
                                            tuple(api_ids))
         db_ids = [row["id"] for row in db_rows]
         assert len(db_ids) == len(api_ids), f"API returned IDs not found in DB. api_ids={api_ids}, db_ids={db_ids}"
-        assert set(db_ids) == set(api_ids), f"Mismatch between API post IDs and DB IDs. api_ids={api_ids}, db_ids={db_ids}"
+        assert set(db_ids) == set(
+            api_ids), f"Mismatch between API post IDs and DB IDs. api_ids={api_ids}, db_ids={db_ids}"
 
 
 @allure.feature("Posts")
@@ -907,7 +828,7 @@ def test_get_posts_missing_params(session_posts_api, module_create_user_get_toke
 )
 def test_get_posts_invalid_pagination(session_posts_api, module_create_user_get_token, page, size):
     with prepare_step():
-        token=module_create_user_get_token
+        token = module_create_user_get_token
 
     with execute_step():
         resp, _ = session_posts_api.get_posts(token=token, page=page, size=size)

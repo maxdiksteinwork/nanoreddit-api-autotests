@@ -1,3 +1,17 @@
+## Цель проекта
+
+Автотесты покрывают основные сценарии NanoReddit API (аутентификация, посты, комментарии, профиль, админка), чтобы быстро обнаруживать регрессии и фиксировать нарушения контрактов между сервисами.
+
+## Технологии
+
+- Python 3.11+ и стандартная библиотека
+- Pytest как тестовый раннер
+- HTTP-клиенты на базе `httpx`
+- Pydantic-схемы и `pydantic-settings` для моделей и конфигурации
+- Faker и вспомогательные утилиты для генерации данных
+- Allure для формирования отчётов
+- `python-dotenv` и переменные окружения для секретов и конфигов
+
 ### Структура проекта
 
 - **`tests/`**: сами тесты (`test_auth.py`, `test_posts.py`, `test_comments.py`, `test_profile.py`, `test_admin.py`).
@@ -50,4 +64,6 @@ pytest --alluredir=reports/allure-results
 allure serve reports/allure-results
 ```
 
+**Скриншот отчёта**
 
+![Allure dashboard](reports/allure_report.png)

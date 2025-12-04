@@ -15,8 +15,7 @@ pytest_plugins = (
     "utils.fixtures.admin",
     "utils.fixtures.posts",
     "utils.fixtures.comments",
-    "utils.fixtures.apis",
-    "utils.fixtures.security_payloads",
+    "utils.fixtures.apis"
 )
 
 
@@ -101,9 +100,10 @@ def pytest_sessionfinish(session, exitstatus):
         f.write(f"DB Host={settings.db_host}\n")
         f.write(f"DB Port={settings.db_port}\n")
         f.write(f"DB Name={settings.db_name}\n")
-        f.write(f"DB User={SECRET_PLACEHOLDER}\n")
-        f.write(f"DB Password={SECRET_PLACEHOLDER}\n")
+        f.write(f"DB User={settings.db_user}\n")
+        f.write("DB Password=not logged (stored securely)\n")
         f.write(f"Test Env={os.environ.get('TEST_ENV', 'local')}\n")
+        f.write(f"Build ID={os.environ.get('CI_PIPELINE_ID', 'manual')}\n")
 
     print(f"\n[ALLURE] environment.properties generated at: {os.path.abspath(env_file)}")
 

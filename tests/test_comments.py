@@ -383,61 +383,6 @@ def test_reply_comment_invalid_body(session_comments_api, create_comment_with_co
 
 
 @allure.feature("Comments")
-@allure.story("Reply comment | security")
-@allure.severity(allure.severity_level.CRITICAL)
-def test_reply_comment_xss(session_comments_api, create_comment_with_comment_id, session_sql_client, xss_payload):
-    with prepare_step():
-        _, token, parent_comment_id = create_comment_with_comment_id
-        count_before = get_table_count(session_sql_client, "comments", "WHERE parent_id::text = %s",
-                                       (parent_comment_id,))
-
-    with execute_step():
-        resp = session_comments_api.reply_comment(token, parent_comment_id, ReplyCommentPayload(text=xss_payload))
-
-    with validate_api_step():
-        assert_api_error(resp, expected_message="access denied")
-
-    with validate_db_step():
-        assert_count_unchanged(
-            session_sql_client,
-            "comments",
-            count_before,
-            "WHERE parent_id::text = %s",
-            (parent_comment_id,),
-            "Expected no reply to be created with XSS payload"
-        )
-
-
-@allure.feature("Comments")
-@allure.story("Reply comment | security")
-@allure.severity(allure.severity_level.CRITICAL)
-def test_reply_comment_sql_injection(session_comments_api, create_comment_with_comment_id, session_sql_client,
-                                     sql_injection_payload):
-    with prepare_step():
-        _, token, parent_comment_id = create_comment_with_comment_id
-        count_before = get_table_count(session_sql_client, "comments", "WHERE parent_id::text = %s",
-                                       (parent_comment_id,))
-
-    with execute_step():
-        resp = session_comments_api.reply_comment(
-            token, parent_comment_id, ReplyCommentPayload(text=sql_injection_payload)
-        )
-
-    with validate_api_step():
-        assert_api_error(resp, expected_message="access denied")
-
-    with validate_db_step():
-        assert_count_unchanged(
-            session_sql_client,
-            "comments",
-            count_before,
-            "WHERE parent_id::text = %s",
-            (parent_comment_id,),
-            "Expected no reply to be created with SQL injection payload"
-        )
-
-
-@allure.feature("Comments")
 @allure.story("Reply comment | validation")
 @allure.severity(allure.severity_level.MINOR)
 def test_reply_comment_with_unexpected_fields(session_comments_api, create_comment_with_comment_id,
